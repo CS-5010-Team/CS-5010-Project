@@ -1,0 +1,21 @@
+DATA CLEANUP:
+-remove ID
+-Convert timestamp to numeric.  Minutes since some time x?
+-remove frequency? It's targeted to stay at 50hz and doesn't vary much.
+  but the documentation says a low frequency indicates higher demand than the grid
+  is producing, so there might be interesting info there.
+
+
+
+USER QUERIES:
+-print the list of vars so users know what their options are
+-date range in addition to single dates
+-exception handling for date entry.  single digits allowable for month/day?
+
+
+OUTPUT:
+-summary data: not every 5 minutes but every h hours where user specifies h?
+  This could be generated as a rolling average, which I'm happy to code.
+-graph of time series for the above summaries (matplotlib)
+-correlation grid for pairs of requested variables (heatmap? matplotlib)
+
