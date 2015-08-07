@@ -32,6 +32,7 @@ def month_day_year_variable(month, day, year, variable):
     return grid[grid["timestamp"].str.contains(date_string)][variable]
     
 print("hello, nerds")
+print("HELP")
     
         
                                                    
