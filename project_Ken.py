@@ -12,10 +12,7 @@ df.columns = df.columns.str.strip()
 #input a date and return all the rows for that day
 time_lookingfors = input("Input the time in the format YYYY-MM-DD(seperate by ','):")
 time_lookingfor = [y.strip() for y in time_lookingfors.split(',')]
-s = df[df['timestamp'].str.contains(time_lookingfor[0])]
-for i in range(1,len(time_lookingfor)):
-	s2 = df[df['timestamp'].str.contains(time_lookingfor[i])]
-	s = s.append(s2)
+s = df[df['timestamp'].str.contains('|'.join(time_lookingfor))]
 
 #input the columns you need
 titles = input("Input the title you are looking for(seperate by ',') or type 'all': ")
