@@ -23,8 +23,6 @@ def line_plot(frame):
     plt.legend()
     plt.show()
 
-    return
-
 
 
 
@@ -35,20 +33,39 @@ def covariance_matrix(frame):
 
     cov_matrix = np.cov(frame.as_matrix(columns=var_names))
     print(cov_matrix)
-    return
+
+
+
+
+def bar_chart(frame):
+    
+    print("\nWhich variables would you like to include?")
+    print("Please choose from 'coal', 'nuclear', 'ccgt', 'wind' ,'pumped', " +
+            "'hydro', 'oil', 'ocgt'" )
+    var_names = get_var_names(frame)
+    
+    index=np.arange(len(var_names))
+    bar_width = 0.7
+    summation = frame[var_names].mean(axis=0)
+    plt.bar(index,summation.get_values(),bar_width, label=summation.keys())
+    plt.xticks(index+bar_width/2, var_names)
+    plt.show()
+    
+
 
 
 
 def auto_correlation(frame):
-    return
+    pass
 
 
 
 
 def plot_menu(frame):
     print("\nWhat kind of plot would you like to generate?")
-    print("--- 1 --- Time series line graph \n--- 2 --- Covariance matrix\n--- 3 --- Autocorrelation plot")
-
+    print("--- 1 --- Bar Chart\n--- 2 --- Time series line graph \n" +
+          "--- 3 --- Covariance matrix\n--- 4 --- Autocorrelation plot")
+    
     while True:
         option = input("\nChoose an option:")
         option = option.strip()
@@ -56,12 +73,15 @@ def plot_menu(frame):
         if option == "-1" :
             return
         elif option == "1":
-            line_plot(frame)
+            bar_chart(frame)
             return
         elif option == "2":
+            line_plot(frame)
+            return
+        elif option == "3":
             covariance_matrix(frame)
             return
-        elif option == '3':
+        elif option == "4":
             auto_correlation(frame)
             return
         else:
@@ -91,7 +111,6 @@ def get_var_names(frame):
 #Takes comma-separated strings and removes any that aren't variable names in frame
     var_names = []
 
-    print("Type 'all' for all.",end="")
     #Try until you get a valid variable name
     while len(var_names)==0:
         var_string = input()
@@ -287,7 +306,6 @@ def main():
     if import_again == 'y':
         main()
     
-    return
 
 
    
