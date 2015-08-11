@@ -14,7 +14,7 @@ def line_plot(frame):
     var_names = get_var_names(frame)
 
     print("At what frequency would you like to resample the time series?" +
-          "\n('n t' where t = 'm', 'h', or 'd' for units and n is the number of units)",end="")
+          "\n('n t' where t = 'm', 'h', or 'd' for units and n is the number of units\n)",end="")
     frequency = get_frequency()
  
     resampled = frame.resample(frequency,closed='left',label='left',how='mean')
@@ -159,6 +159,8 @@ def get_date():
 
 def get_date_range(min_date,max_date):
 #Take user input for a valid date range (within bounds set by min_date, max_date).  Return a 2-tuple of datetime objects
+    print("********************************************************")
+    print("\nEXTRACT DATA FROM DATASET............ \n")
     print("Input start date between " + str(min_date.year) + "-" + str(min_date.month) + "-" + str(min_date.day) +
            " and " + str(max_date.year) + "-" + str(max_date.month) + "-" + str(max_date.day) + ":",end='')
 
@@ -184,7 +186,7 @@ def get_date_range(min_date,max_date):
 
 def convert_time(frame):
     #get timestamp column
-    print("Which column name corresponds to the timestamp?", end="")
+    print("Which column name corresponds to the timestamp?\n", end="")
     timestamp = get_var_names(frame)
     timestamp = timestamp[0]
 
@@ -220,7 +222,7 @@ def get_filename():
 
     while (num_tries < 3):
         try:
-            filename = input("Input the path to the csv file:")
+            filename = input("Input the path to the csv file:\n")
             with open(filename,'r') as f:
                 f.close()
             break
@@ -234,12 +236,16 @@ def get_filename():
 
 
 def main():
+    print("\n********************************************************")
+    print("\n**    WELCOME TO THE UK ENERGY COMSUMPTION!           **")
+    print("\n********************************************************")
+    print("\nINITIALING............")
     #Get a valid source filename
     input_file = get_filename()
 
     #Create a pandas dataframe and clean up column headers
     df = read_data(input_file)
-
+    print("\nDONE!\n")
     #Print contents
     print("\nYou have imported " + str(len(df)) + " observations for the variables " + str(df.columns.values) + ".\n")
 
@@ -278,16 +284,18 @@ def main():
 
 #   subset = remove_outliers(subset)    
 
-    remove_outliers = input("Would you like to remove outliers('y' or 'n')?")
+    remove_outliers = input("\nWould you like to remove outliers('y' or 'n')?\n")
     remove_outliers = (remove_outliers.strip()).lower()
     if remove_outliers == 'y':
         quantile = input()
         subset = remove_outliers(subset,quantile)
+    print("\nEXTRACT SUCCEFULLY!!\n")
+    print("********************************************************")
 
 
     #Choose an (possibly more than 1) analysis to perform from a menu of options:
     while True:
-        make_plot = input("Would you like to generate a new plot('y' or 'n')?")
+        make_plot = input("\nWould you like to generate a new plot('y' or 'n')?\n")
         make_plot = (make_plot.strip()).lower()
         if make_plot == 'y':
             plot_menu(subset)
@@ -295,19 +303,19 @@ def main():
             break
 
     #Finally, output to a file:
-    make_csv = input("Would you like to export the data subset to a csv file('y' or 'n')?")
+    make_csv = input("\nWould you like to export the data subset to a csv file('y' or 'n')?\n")
     make_csv = (make_csv.strip()).lower()
     if make_csv == 'y':
         subset.to_csv("extract.csv", sep = ',')
 
     #Start another import or quit?
-    import_again = input("Would you like to import another file('y' or 'n')?")
+    import_again = input("\nWould you like to import another file('y' or 'n')?\n")
     import_again = (import_again.strip()).lower()
     if import_again == 'y':
         main()
-    
-
-
+    print("\n********************************************************")
+    print("\n**       THANKS FOR USING THIS APPLICATION!           **")
+    print("\n********************************************************")
    
 #Execute
 main()
