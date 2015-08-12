@@ -26,13 +26,35 @@ def line_plot(frame):
 
 
 
-def covariance_matrix(frame):
+def correlation_matrix(frame):
 
     print("\nWhich variables would you like to compute covariances for?")
     var_names = get_var_names(frame)
 
-    cov_matrix = np.cov(frame.as_matrix(columns=var_names))
-    print(cov_matrix)
+    corr_matrix = frame[var_names].corr()
+    print(corr_matrix)
+    
+    show_heatmap = input("Would you like to view the results as a heatmap?('y' or 'n')\n")
+    show_heatmap = (show_heatmap.lower()).strip()
+    
+    if show_heatmap == 'y':
+        column_labels = var_names
+        row_labels = var_names
+        
+        fig, ax = plt.subplots()
+        heatmap = ax.pcolor(corr_matrix, cmap=plt.cm.Blues)
+        
+        # put the major ticks at the middle of each cell
+        ax.set_xticks(np.arange(corr_matrix.shape[0])+0.5, minor=False)
+        ax.set_yticks(np.arange(corr_matrix.shape[1])+0.5, minor=False)
+        
+        # want a more natural, table-like display
+        ax.invert_yaxis()
+        ax.xaxis.tick_top()
+        ax.set_xticklabels(row_labels, minor=False)
+        ax.set_yticklabels(column_labels, minor=False)
+        plt.legend()
+        plt.show()
 
 
 
@@ -56,7 +78,7 @@ def bar_chart(frame):
 
 
 def auto_correlation(frame):
-    pass
+    return
 
 
 
@@ -79,7 +101,7 @@ def plot_menu(frame):
             line_plot(frame)
             return
         elif option == "3":
-            covariance_matrix(frame)
+            correlation_matrix(frame)
             return
         elif option == "4":
             auto_correlation(frame)
