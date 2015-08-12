@@ -14,7 +14,7 @@ def main():
     print("\n********************************************************")
     print("\n**    WELCOME TO THE ENERGY GRID DATA MANIPULATOR!    **")
     print("\n********************************************************")
-    print("\nINITIALING............")
+    print("\nINITIALIZING............")
     #Get a valid source filename
     input_file = get_filename()
 
@@ -221,7 +221,8 @@ def get_frequency():
 def plot_menu(frame):
     print("\nWhat kind of plot would you like to generate?")
     print("--- 1 --- Bar Chart\n--- 2 --- Time series line graph \n" +
-          "--- 3 --- Covariance matrix\n--- 4 --- Autocorrelation plot")
+          "--- 3 --- Covariance matrix\n--- 4 --- Autocorrelation plot\n" +
+          "--- 5 --- Linear Model")
     
     while True:
         option = input("\nChoose an option:")
@@ -241,6 +242,8 @@ def plot_menu(frame):
         elif option == "4":
             auto_correlation(frame)
             return
+#        elif option == "5":
+#            linearmodel(frame)
         else:
            print("Invalid input.  Try again.")
 
