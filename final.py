@@ -1,7 +1,4 @@
-
 # coding: utf-8
-
-# In[15]:
 
 import numpy as np
 import pandas as pd
@@ -15,11 +12,6 @@ connectors = ['french_ict','dutch_ict','irish_ict','ew_ict']
 remove = ['id']
 timestamp = 'timestamp'
 
-
-
-# In[8]:
-
-# This cell contains the main function
 
 def main():
     print("\n********************************************************")
@@ -38,87 +30,48 @@ def main():
     #Convert date/time strings to pandas datetime object and use these as the data frame indices.
     #This allows for convenient subsetting and timeseries analysis.
     df = convert_time(df)
+
+    for n in range(0,len(remove)):    
+        try:
+            df = df.drop(remove[n],1)
+        except:
+            continue
     
-    df = df.drop(remove,1)
-    
-    #The next few blocks of code reduce the imported data to a smaller data set of the user's choosing, to speed up computations
- 
-    print("********************************************************")
-    print("\nEXTRACT DATA FROM DATASET............ \n")
+    #The next block of code reduces the imported data to a smaller data set of the user's choosing to speed up computations,
+    #And then allows the user to select from a menu of analyses and plots to perform on the subsetted data
 
-    #Get a valid date range for subsetting
-    #First get upper and lower bounds
-    min_date = df.index[0]
-    max_date = df.index[len(df.index)-1]
-    #convert these to datetime objects with all hour, minute, second data set to 0 (so that partial days at start/end may be selected)
-    min_date = pd.to_datetime(pd.datetime(min_date.year,min_date.month,min_date.day))
-    max_date = pd.to_datetime(pd.datetime(max_date.year,max_date.month,max_date.day))
-    #make sure the datetime indices are monotonically increasing
-    df.sort_index()
-    #and take input
-    date_range = get_date_range(min_date,max_date)
-    
-    #Now subset on the chosen date range. First, pull out date strings that can be used as indices:
-    #Now subset on the chosen date range
-    start_date = date_range[0]
-    end_date = date_range[1]
-    subset = df[str(start_date):str(end_date)]
 
-    #Select vars for analysis and subset:
-    print("\nWhich variables are you interested in?")
-    print("Available variables are:\n " + str(subset.columns.values) + ".\n" +
-          "List individual variables or type 'all', 'sources' or 'connectors'.")
-    var_names = get_var_names(subset)
-    print("You chose "+ str(var_names))
-    #Then subset on these vars:
-    subset = subset[var_names]
-
-    #Remove outliers
-    rm_outliers = input("\nWould you like to remove outliers('y' or 'n')?\n")
-    rm_outliers = (rm_outliers.strip()).lower()
-    n_obs = len(subset.index)
-    if rm_outliers == 'y':
-        threshold = input("Threshold for elimination (SD's from the mean)")
-        subset = remove_outliers(subset,float(threshold))
-    print(str(n_obs-len(subset.index)) + " rows were removed from the data set.")
-
-    #Resample
-    resample = input("\nWould you like to resample the data('y' or 'n')?\n")
-    resample = (resample.strip()).lower()
-    if resample == 'y':
-        #Avg frequency for display- (max time - min time)/(# samples)
-        avg_freq = (subset.index[len(subset.index)-1]-subset.index[0])/len(subset.index)
-        print("At what frequency would you like to resample the time series?" +
-              "\n(input 'n t' where t = 'm', 'h', or 'd' for units and n is the number of units\n)" +
-              "current average frequency is " + str(avg_freq),end="")
-        #Get a valid frequency, eg '1 d', '6 h', '30 m'
-        frequency = get_frequency()
-        #And finally, resample
-        subset = subset.resample(frequency,closed='left',label='left',how='mean')
-
-    print("\nDATA EXTRACTION SUCCESSFUL!\n")
-    print("********************************************************")
-
-    
-
-    #Choose an (possibly more than 1) analysis to perform from a menu of options:
     while True:
-        make_plot = input("\nWould you like to generate a new plot('y' or 'n')?\n")
-        make_plot = (make_plot.strip()).lower()
-        if make_plot == 'y':
-            plot_menu(subset)
-        else:
-            break
+        subset = get_subset(df)
 
-            
-    #Finally, output to a file:
-    make_csv = input("\nWould you like to export the data subset to a csv file('y' or 'n')?\n")
-    make_csv = (make_csv.strip()).lower()
-    if make_csv == 'y':
-        subset.to_csv("extract.csv", sep = ',')
+        #Choose an (possibly more than 1) analysis to perform from a menu of options:
+        while True:
+            make_plot = input("\nWould you like to generate a new plot or analysis('y' or 'n')?\n")
+            make_plot = (make_plot.strip()).lower()
+            if make_plot == 'y':
+                plot_menu(subset)
+            else:
+                break
+     
+        #Finally, output to a file:
+        make_csv = input("\nWould you like to export the data subset to a csv file('y' or 'n')?\n")
+        make_csv = (make_csv.strip()).lower()
+        if make_csv == 'y':
+            output_file = input("Please enter a filename for output (or press enter for 'extract.csv'):")
+            if output_file == '':
+                output_file = 'extract.csv'
+            subset.to_csv(output_file, sep = ',')
 
         
-    #Start another import or quit?
+        #Choose another subset or quit?
+        subset_again = input("\nWould you like to select another subset for analysis('y' or 'n')?\n")
+        subset_again = (subset_again.strip()).lower()
+        if not(subset_again == 'y'):
+            break
+
+
+    
+    #Import another file or quit?
     import_again = input("\nWould you like to import another data set('y' or 'n')?\n")
     import_again = (import_again.strip()).lower()
     if import_again == 'y':
@@ -154,20 +107,28 @@ def get_filename():
 def get_date_range(min_date,max_date):
 #Take user input for a valid date range (within bounds set by min_date, max_date).  Return a 2-tuple of datetime objects
     print("Input start date between " + str(min_date.year) + "-" + str(min_date.month) + "-" + str(min_date.day) +
-           " and " + str(max_date.year) + "-" + str(max_date.month) + "-" + str(max_date.day) + ":",end='')
+           " and " + str(max_date.year) + "-" + str(max_date.month) + "-" + str(max_date.day) + ":")
+    print("(empty input returns min or max available date.)")
 
     while True:
         start_date = get_date()
-        if min_date <= start_date <= max_date:
+        if start_date == '':
+            start_date = min_date
+            break
+        elif min_date <= start_date <= max_date:
             break
         print("Start date out of range.  Try again:")
 
     print("Input end date between " + str(start_date.year) + "-" + str(start_date.month) + "-" + str(start_date.day) +
-           " and " + str(max_date.year) + "-" + str(max_date.month) + "-" + str(max_date.day) + ":",end='')
+           " and " + str(max_date.year) + "-" + str(max_date.month) + "-" + str(max_date.day) + ":")
+    print("(empty input returns min or max available date.)")
 
     while True:
         end_date = get_date()
-        if start_date <= end_date <=max_date:
+        if end_date == '':
+            end_date = max_date
+            break
+        elif start_date <= end_date <=max_date:
             break
         print("End date out of range.  Try again:", end="")
 
@@ -179,6 +140,8 @@ def get_date():
 #Input a date that parses correctly as a pandas datetime object
     while True:
         date = input();
+        if date == '':
+            return ''
         try:
             datetime = pd.to_datetime(date)
             #Was pandas able to convert to a datetime object?  If not, output may be a string.
@@ -228,18 +191,19 @@ def get_var_names(frame):
         # if nothing left in var_names let the user know!
         if len(var_names)==0:
             print("No valid variables were entered. Try again", end="")
- 
+    
     return var_names
 
 
 def get_frequency():
     while True:
         frequency = input()
-        frequency = (frequency.upper()).strip()    
-        frequency = re.findall(r'^[0-9]* *[MDH]',frequency)
+        frequency = (frequency.lower()).strip()    
+        frequency = re.findall(r'^[0-9]* *[mdh]',frequency)
         try:
             frequency = frequency[0]
-            frequency = re.sub('M','min',frequency)
+            frequency = re.sub('m','min',frequency)
+            timedelta = pd.to_timedelta(frequency)
             break
         except:
             print("Invalid frequency. Try again.",end="")
@@ -250,8 +214,8 @@ def get_frequency():
 
 def plot_menu(frame):
     print("\nWhat kind of plot or analysis would you like to generate?")
-    print("--- 1 --- Bar Chart\n--- 2 --- Time series line graph \n" +
-          "--- 3 --- Covariance matrix\n--- 4 --- Autocorrelation plot")
+    print("--- 1 --- Bar Chart with summary stats\n--- 2 --- Time series line graph\n" +
+          "--- 3 --- Covariance matrix with heatmap\n--- 4 --- Autocorrelation with variable lag")
     
     while True:
         option = input("\nChoose an option:")
@@ -305,19 +269,19 @@ def line_plot(frame, var_names):
     plt.legend(loc='center left', bbox_to_anchor=(1,.5))
     plt.show()
 
-    
 
 def correlation_matrix(frame, var_names):
     corr_matrix = frame[var_names].corr()
+    print("Correlation matrix:")
     print(corr_matrix)
     
     show_heatmap = input("Would you like to view the results as a heatmap?('y' or 'n')\n")
     show_heatmap = (show_heatmap.lower()).strip()
-    
     if show_heatmap == 'y':
         column_labels = var_names
         row_labels = var_names
-        
+
+        #using matplotlib as plt        
         fig, ax = plt.subplots()
         heatmap = ax.pcolor(corr_matrix, cmap='RdBu', vmin=-1, vmax=1)
         
@@ -325,23 +289,32 @@ def correlation_matrix(frame, var_names):
         ax.set_xticks(np.arange(corr_matrix.shape[0])+0.5, minor=False)
         ax.set_yticks(np.arange(corr_matrix.shape[1])+0.5, minor=False)
         
-        # want a more natural, table-like display
-        ax.invert_yaxis()
-        ax.xaxis.tick_top()
+        # legend.  tick labels -1 to 1 by .2
+        colorbar = plt.colorbar(heatmap)
+        colorbar.ax.set_yticklabels([(x-5)/5 for x in list(range(0,11))])
+        colorbar.set_label('correlation coefficient', rotation=270)
+
+        # labels
         ax.set_xticklabels(row_labels, minor=False)
         ax.set_yticklabels(column_labels, minor=False)
-        plt.legend()
+        
         plt.show()
         
     return corr_matrix
         
 
-def bar_chart(frame, var_names):    
-    index=np.arange(len(var_names))
+def bar_chart(frame, var_names):
+    desc = frame.describe()
+    print("Summary statistics:")
+    print(desc)
+
+    x_vals=np.arange(len(var_names))
+    # means as bar heights
+    heights = (desc[desc.index == 'mean'].get_values())[0]
+    std_devs = (desc[desc.index == 'std'].get_values())[0]
     bar_width = 0.7
-    summation = frame[var_names].mean(axis=0)
-    plt.bar(index,summation.get_values(),bar_width, label=summation.keys())
-    plt.xticks(index+bar_width/2, var_names)
+    plt.bar(x_vals, height=heights, width=bar_width, label=var_names, alpha=.5, yerr=std_devs)
+    plt.xticks(x_vals+bar_width/2, var_names)
     plt.show()
     
 
@@ -357,14 +330,16 @@ def auto_correlation(frame, var_names, min_lag, num_lags):
     # Generate a dataframe with entries for each lag and each var (rows, cols respectively), and timedelta indices
     auto_correlations = pd.DataFrame(index=labels,columns=var_names)
     for var_name in auto_correlations.columns:
-        auto_correlations[var_name] =         [frame[var_name].autocorr(lag=lags[n]) for n in range(0,len(auto_correlations))]
+        auto_correlations[var_name] = [frame[var_name].autocorr(lag=lags[n]) for n in range(0,len(auto_correlations))]
     
     print(auto_correlations)
-    
-    show_linegraph = input("Would you like to view the results on a linegraph?('y' or 'n')\n")
-    show_linegraph = (show_linegraph.lower()).strip()
-    if show_linegraph == 'y':
-        line_plot(auto_correlations,var_names)
+
+#    We tried to plot the autocorrelations on a line graph with lag on the x axis but kept getting MemoryError, 
+#    coming out of the pandas code    
+#    show_linegraph = input("Would you like to view the results on a linegraph?('y' or 'n')\n")
+#    show_linegraph = (show_linegraph.lower()).strip()
+#    if show_linegraph == 'y':
+#        line_plot(auto_correlations,auto_correlations.columns)
         
     return auto_correlations
 
@@ -398,23 +373,86 @@ def convert_time(frame):
 
 
 
-def remove_outliers(frame, threshold):
-    for var in frame.columns:
+def remove_outliers(frame, var_names, threshold):
+    for var in var_names:
         SD = frame[var].std()
         mean = frame[var].mean()
-        frame = frame[np.abs(frame[var]-mean) <= SD*threshold]
-        
-    return frame
+        outlier_indices = (abs(frame[var]-mean)/SD > threshold)
+        frame[var][outlier_indices] = None
+        print(str(sum(outlier_indices)) + " observations were removed from " + var)
     
+    return frame
 
 
-# In[ ]:
+
+def get_subset(df):
+    # This function allows the user to select a subset of variables and a date range, then allows the user to
+    # remove outliers from a chosen set of vars and resample the timeseries data at a chosen time interval.
+
+    print("********************************************************")
+    print("\nEXTRACT DATA FROM DATASET............ \n")
+
+    #Get a valid date range for subsetting
+    #First get upper and lower bounds
+    min_date = df.index[0]
+    max_date = df.index[len(df.index)-1]
+    #convert these to datetime objects with all hour, minute, second data set to 0 (so that partial days at start/end may be selected)
+    min_date = pd.to_datetime(pd.datetime(min_date.year,min_date.month,min_date.day))
+    max_date = pd.to_datetime(pd.datetime(max_date.year,max_date.month,max_date.day))
+    #make sure the datetime indices are monotonically increasing
+    df.sort_index()
+    #and take input
+    date_range = get_date_range(min_date,max_date)
+    
+    #Now subset on the chosen date range. First, pull out date strings that can be used as indices:
+    #Now subset on the chosen date range
+    start_date = date_range[0]
+    end_date = date_range[1]
+    subset = df[str(start_date):str(end_date)]
+
+    #Select vars for analysis and subset:
+    print("\nWhich variables are you interested in?")
+    print("Available variables are:\n " + str(subset.columns.values) + ".\n" +
+          "List individual variables or type 'all', 'sources' or 'connectors'.")
+    var_names = get_var_names(subset)
+    print("You chose "+ str(var_names))
+    #Then subset on these vars:
+    subset = subset[var_names]
+
+    #Remove outliers
+    rm_outliers = input("\nWould you like to remove outliers('y' or 'n')?\n")
+    rm_outliers = (rm_outliers.strip()).lower()
+    n_obs = len(subset.index)
+    if rm_outliers == 'y':
+        print("\nFor which variables would you like to remove outliers?")
+        print("Available variables are:\n " + str(subset.columns.values) + ".\n" +
+              "List individual variables or type 'all', 'sources' or 'connectors'.")
+        var_names = get_var_names(subset)
+        threshold = input("Threshold for elimination (SD's from the mean)?")
+        subset = remove_outliers(subset,var_names,float(threshold))
+
+    #Resample
+    resample = input("\nWould you like to resample the data('y' or 'n')?\n")
+    resample = (resample.strip()).lower()
+    if resample == 'y':
+        #Avg frequency for display- (max time - min time)/(# samples)
+        avg_freq = (subset.index[len(subset.index)-1]-subset.index[0])/len(subset.index)
+        print("At what frequency would you like to resample the time series?" +
+              "\n(input 'n t' where t = 'm', 'h', or 'd' for units and n is the number of units)\n" +
+              "current average frequency is " + str(avg_freq) + '.')
+        #Get a valid frequency, eg '1 d', '6 h', '30 m'
+        frequency = get_frequency()
+        #And finally, resample
+        subset = subset.resample(frequency,closed='left',label='left',how='mean')
+
+    print("\nDATA EXTRACTION SUCCESSFUL!\n")
+    print("********************************************************")
+    
+    return subset
+
+
 if __name__ == "__main__":
     main()
-
-
-
-# In[ ]:
 
 
 
